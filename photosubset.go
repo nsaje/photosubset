@@ -20,13 +20,17 @@ var search string
 
 func main() {
 	flag.Usage = func() {
-		fmt.Println("photosubset should be run from the directory where all the photos you want to make subsets of are located.")
+		fmt.Println("photosubset should be run from the directory where all the " +
+			"photos you want to make subsets of are located.")
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
 		flag.PrintDefaults()
 	}
 
-	flag.StringVar(&dir, "tag", ".", "which tag to browse, leave empty for all photos")
-	flag.StringVar(&search, "photo", "", "substring of photo filename to start with, leave empty to start at the beginning")
+	flag.StringVar(&dir, "tag", ".",
+		"which tag to browse, leave empty for all photos")
+	flag.StringVar(&search, "photo", "",
+		"substring of photo filename to start with, leave empty to start "+
+			"at the beginning")
 	flag.Parse()
 
 	if err := qml.Run(run); err != nil {
