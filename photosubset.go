@@ -1,6 +1,9 @@
+//go:generate genqrc qml
+
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -16,13 +19,15 @@ var dir string
 var search string
 
 func main() {
-	if len(os.Args) < 2 {
-		os.Exit(1)
+	flag.Usage = func() {
+		fmt.Println("photosubset should be run from the directory where all the photos you want to make subsets of are located.")
+		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
+		flag.PrintDefaults()
 	}
-	dir = os.Args[1]
-	if len(os.Args) > 2 {
-		search = os.Args[2]
-	}
+
+	flag.StringVar(&dir, "tag", ".", "which tag to browse, leave empty for all photos")
+	flag.StringVar(&search, "photo", "", "substring of photo filename to start with, leave empty to start at the beginning")
+	flag.Parse()
 
 	if err := qml.Run(run); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
@@ -49,13 +54,17 @@ func run() error {
 	return nil
 }
 
+// NewPhotoController sets up a PhotoController by building a list of photos
+// to browse and finding the right photo to start at
 func NewPhotoController(path string) *PhotoController {
+	// read files in the current directory
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
+	// build a list of images
 	images := make([]string, 0, len(files))
 	for _, f := range files {
 		if isImage(f.Name()) {
@@ -63,6 +72,8 @@ func NewPhotoController(path string) *PhotoController {
 			images = append(images, "file://"+absPath)
 		}
 	}
+
+	// find the correct photo, if user gave us something to search for
 	index := 0
 	if len(search) > 0 {
 		for i, name := range images {
@@ -72,6 +83,7 @@ func NewPhotoController(path string) *PhotoController {
 			}
 		}
 	}
+
 	pc := &PhotoController{files: images, index: index}
 	pc.changePhoto()
 	return pc
@@ -131,8 +143,6 @@ func (c *PhotoController) getTags() {
 			}
 		}
 	}
-	fmt.Println(c.currentTagNames)
-	fmt.Println(c.currentTags)
 
 	c.TagsText = ""
 	for i, tagged := range c.currentTags {
@@ -143,6 +153,7 @@ func (c *PhotoController) getTags() {
 	qml.Changed(c, &c.TagsText)
 }
 
+// Next moves the UI to next image
 func (c *PhotoController) Next() {
 	if c.index < len(c.files)-1 {
 		c.index++
@@ -150,6 +161,7 @@ func (c *PhotoController) Next() {
 	}
 }
 
+// Prev moves the UI to previous image
 func (c *PhotoController) Prev() {
 	if c.index > 0 {
 		c.index--
@@ -157,6 +169,7 @@ func (c *PhotoController) Prev() {
 	}
 }
 
+// Tag tags or untags the photo
 func (c *PhotoController) Tag(num int) {
 	imageName := filepath.Base(c.CurrentPhotoPath)
 	tagName := c.currentTagNames[num]

@@ -1,5 +1,5 @@
-photosubset: photosubset.go qml
+photosubset: photosubset.go qrc.go
 	go build
 
-qml: qml/photosubset.qml
+qrc.go: qml/photosubset.qml
 	go generate

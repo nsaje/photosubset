@@ -7,19 +7,16 @@ Rectangle {
     focus: true
 
 		Keys.onLeftPressed: {
-			console.log("left pressed");
 			controller.prev();
 			event.accepted = true;
 		}
 		Keys.onRightPressed: {
-			console.log("right pressed");
 			controller.next();
 			event.accepted = true;
 		}
 		Keys.onPressed: {
 			if (event.key >= 0x30 && event.key <= 0x39) {
         var num = event.key - 0x30;
-        console.log("digit " + num + " pressed");
 				controller.tag(num);
         event.accepted = true;
 			}
